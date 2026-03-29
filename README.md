@@ -145,4 +145,4 @@ For support and questions:
 
 ---
 
-**Note**: This is a frontend-only implementation. For full functionality including data persistence, a backend with database support needs to be implemented.
+**Note**: This is a full-stack implementation with PHP backend and MySQL database. It includes user authentication, event management, and data persistence.

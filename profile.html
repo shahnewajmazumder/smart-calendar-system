@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Smart Calendar</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calendar-alt"></i> Smart Calendar</h1>
+            <div class="tricolor"></div>
+            <p class="subtitle">Your Profile</p>
+        </header>
+
+        <nav>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="events.html" class="nav-link"><i class="fas fa-calendar"></i> Calendar</a>
+                <a href="events.html" class="nav-link"><i class="fas fa-plus-circle"></i> Add Event</a>
+                <a href="events.html" class="nav-link"><i class="fas fa-list"></i> My Events</a>
+            </div>
+            <div class="user-actions">
+                <div id="userMenu">
+                    <span id="userName"><i class="fas fa-user"></i> User</span>
+                    <button class="btn btn-secondary" onclick="window.location.href='profile.html'">
+                        <i class="fas fa-user-cog"></i> Profile
+                    </button>
+                    <button class="btn btn-secondary" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="profile-container">
+            <div class="profile-sidebar">
+                <div class="profile-header">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="Profile" class="profile-avatar" id="profileAvatar">
+                    <div class="profile-info">
+                        <h2 id="profileName">John Doe</h2>
+                        <p id="profileEmail">john.doe@example.com</p>
+                    </div>
+                </div>
+                <ul class="profile-menu">
+                    <li><a href="#" class="profile-menu-link active" data-section="edit-profile"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+                    <li><a href="#" class="profile-menu-link" data-section="change-photo"><i class="fas fa-camera"></i> Change Photo</a></li>
+                    <li><a href="#" class="profile-menu-link" data-section="my-events"><i class="fas fa-calendar-check"></i> My Events</a></li>
+                    <li><a href="#" class="profile-menu-link" data-section="preferences"><i class="fas fa-cog"></i> Preferences</a></li>
+                </ul>
+            </div>
+            <div class="profile-content">
+                <!-- Edit Profile Section -->
+                <div class="profile-section active" id="edit-profile-section">
+                    <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
+                    <form id="profileForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileFirstName">First Name</label>
+                                <input type="text" id="profileFirstName" name="profileFirstName" value="John" />
+                            </div>
+                            <div class="form-group">
+                                <label for="profileLastName">Last Name</label>
+                                <input type="text" id="profileLastName" name="profileLastName" value="Doe" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="profileEmailInput">Email Address</label>
+                            <input type="email" id="profileEmailInput" name="profileEmailInput" value="john.doe@example.com" />
+                        </div>
+                        <div class="form-group">
+                            <label for="profilePhone">Phone Number</label>
+                            <input type="tel" id="profilePhone" name="profilePhone" value="+1 234 567 8900" />
+                        </div>
+                        <div class="form-group">
+                            <label for="profileBio">Bio</label>
+                            <textarea id="profileBio" name="profileBio" rows="4">Event enthusiast and calendar organizer</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Change Photo Section -->
+                <div class="profile-section" id="change-photo-section">
+                    <h2><i class="fas fa-camera"></i> Change Profile Photo</h2>
+                    <form id="photoForm">
+                        <div class="form-group">
+                            <div class="photo-upload" onclick="document.getElementById('profilePhotoUpload').click()">
+                                <p><i class="fas fa-cloud-upload-alt"></i> Click to upload profile photo</p>
+                                <small>Recommended: Square image, at least 200x200px</small>
+                                <img id="profilePhotoPreview" class="photo-preview" alt="Preview" />
+                            </div>
+                            <input type="file" id="profilePhotoUpload" name="profilePhotoUpload" accept="image/*" style="display: none" onchange="previewProfilePhoto(event)" />
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Photo</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Events Section -->
+                <div class="profile-section" id="my-events-section">
+                    <h2><i class="fas fa-calendar-check"></i> My Events</h2>
+                    <div id="profileEventsList">
+                        <!-- User events will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div class="profile-section" id="preferences-section">
+                    <h2><i class="fas fa-cog"></i> Preferences</h2>
+                    <form id="preferencesForm">
+                        <div class="form-group">
+                            <label for="notificationPref">Notification Preferences</label>
+                            <select id="notificationPref" name="notificationPref">
+                                <option value="all">All Notifications</option>
+                                <option value="important">Important Only</option>
+                                <option value="none">No Notifications</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="timezonePref">Timezone</label>
+                            <select id="timezonePref" name="timezonePref">
+                                <option value="ist">India Standard Time (IST)</option>
+                                <option value="est">Eastern Standard Time (EST)</option>
+                                <option value="pst">Pacific Standard Time (PST)</option>
+                                <option value="gmt">Greenwich Mean Time (GMT)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="languagePref">Language</label>
+                            <select id="languagePref" name="languagePref">
+                                <option value="en">English</option>
+                                <option value="hi">Hindi</option>
+                                <option value="ta">Tamil</option>
+                                <option value="te">Telugu</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="emailUpdates" name="emailUpdates" checked /> Send me email updates about new features
+                            </label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Preferences</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,97 +1,58 @@
 <?php
-// register.php - User Registration Backend
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+require_once 'config.php';
 
-// Include database connection
-include_once 'db_connection.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents("php://input"));
 
-$response = array('status' => 'error', 'message' => 'Unknown error');
+    if (!empty($data->first_name) && !empty($data->last_name) && !empty($data->email) && !empty($data->password)) {
+        
+        $database = new Database();
+        $db = $database->getConnection();
 
-try {
-    // Get the request method
-    $method = $_SERVER['REQUEST_METHOD'];
+        // Check if user already exists
+        $check_query = "SELECT id FROM users WHERE email = :email";
+        $check_stmt = $db->prepare($check_query);
+        $check_stmt->bindParam(":email", $data->email);
+        $check_stmt->execute();
 
-    if ($method == 'POST') {
-        // Get form data
-        $firstName = isset($_POST['firstName']) ? trim($_POST['firstName']) : '';
-        $lastName = isset($_POST['lastName']) ? trim($_POST['lastName']) : '';
-        $email = isset($_POST['registerEmail']) ? trim($_POST['registerEmail']) : '';
-        $password = isset($_POST['registerPassword']) ? $_POST['registerPassword'] : '';
-        $confirmPassword = isset($_POST['confirmPassword']) ? $_POST['confirmPassword'] : '';
-        $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-        $bio = isset($_POST['bio']) ? trim($_POST['bio']) : '';
+        if ($check_stmt->rowCount() > 0) {
+            echo json_encode(array("success" => false, "message" => "User already exists with this email."));
+            exit;
+        }
 
-        // Validation
-        if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
-            $response['message'] = 'All required fields must be filled';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $response['message'] = 'Invalid email format';
-        } elseif ($password !== $confirmPassword) {
-            $response['message'] = 'Passwords do not match';
-        } elseif (strlen($password) < 6) {
-            $response['message'] = 'Password must be at least 6 characters long';
+        // Insert new user
+        $query = "INSERT INTO users SET first_name=:first_name, last_name=:last_name, email=:email, password=:password";
+        $stmt = $db->prepare($query);
+
+        $first_name = htmlspecialchars(strip_tags($data->first_name));
+        $last_name = htmlspecialchars(strip_tags($data->last_name));
+        $email = htmlspecialchars(strip_tags($data->email));
+        $password = password_hash($data->password, PASSWORD_DEFAULT);
+
+        $stmt->bindParam(":first_name", $first_name);
+        $stmt->bindParam(":last_name", $last_name);
+        $stmt->bindParam(":email", $email);
+        $stmt->bindParam(":password", $password);
+
+        if ($stmt->execute()) {
+            // Get the newly created user
+            $user_query = "SELECT id, first_name, last_name, email FROM users WHERE email = :email";
+            $user_stmt = $db->prepare($user_query);
+            $user_stmt->bindParam(":email", $email);
+            $user_stmt->execute();
+            $user = $user_stmt->fetch(PDO::FETCH_ASSOC);
+
+            echo json_encode(array(
+                "success" => true, 
+                "message" => "User registered successfully.",
+                "user" => $user
+            ));
         } else {
-            // Create database connection
-            $database = new Database();
-            $db = $database->getConnection();
-
-            // Check if email already exists
-            $checkQuery = "SELECT id FROM users WHERE email = ?";
-            $checkStmt = $db->prepare($checkQuery);
-            $checkStmt->execute([$email]);
-            
-            if ($checkStmt->rowCount() > 0) {
-                $response['message'] = 'User with this email already exists';
-            } else {
-                // Hash password
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                
-                // Insert new user
-                $insertQuery = "INSERT INTO users (first_name, last_name, email, password_hash, phone, bio) 
-                               VALUES (?, ?, ?, ?, ?, ?)";
-                $insertStmt = $db->prepare($insertQuery);
-                
-                // In register.php, after successful registration:
-if ($insertStmt->execute([$firstName, $lastName, $email, $hashedPassword, $phone, $bio])) {
-    $userId = $db->lastInsertId();
-    
-    // Create default preferences
-    $prefQuery = "INSERT INTO user_preferences (user_id) VALUES (?)";
-    $prefStmt = $db->prepare($prefQuery);
-    $prefStmt->execute([$userId]);
-    
-    // Return COMPLETE user data
-    $response['status'] = 'success';
-    $response['message'] = 'Registration successful';
-    $response['userId'] = $userId;
-    $response['user'] = array(
-        'id' => $userId,
-        'firstName' => $firstName,
-        'lastName' => $lastName,
-        'email' => $email,
-        'phone' => $phone,
-        'bio' => $bio,
-        'profile_picture' => ''
-    );
-
-                } else {
-                    $response['message'] = 'Registration failed. Please try again.';
-                }
-            }
+            echo json_encode(array("success" => false, "message" => "Unable to register user."));
         }
     } else {
-        $response['message'] = 'Invalid request method';
+        echo json_encode(array("success" => false, "message" => "All fields are required."));
     }
-
-} catch(PDOException $e) {
-    $response['message'] = 'Database error: ' . $e->getMessage();
-} catch(Exception $e) {
-    $response['message'] = 'Error: ' . $e->getMessage();
 }
-
-// Return JSON response
-echo json_encode($response);
 ?>
